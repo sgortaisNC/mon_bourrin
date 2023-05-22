@@ -1,0 +1,32 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:root@localhost:3306/ncbrute"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Brute {
+  id        Int      @id @default(autoincrement())
+  nom       String
+  currentxp Int   @default(0)
+  maxxp     Int   @default(10)
+  level     Int   @default(1)
+  hp        Int   @default(10)
+  force     Int   @default(1)
+  endurance Int   @default(1)
+  agilite   Int   @default(1)
+  nbmatch   Int   @default(0)
+  armes     Arme[]
+}
+
+model Arme {
+  id                     Int     @id @default(autoincrement())
+  tauxDeCritique         Float
+  multiplicateurCritique Float
+  poids                  Float
+  modificateurDegats     Float
+  brute                  Brute   @relation(fields: [bruteId], references: [id])
+  bruteId                Int
+}

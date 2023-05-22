@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `brute` ADD COLUMN `nbmatch` INTEGER NOT NULL DEFAULT 0;
