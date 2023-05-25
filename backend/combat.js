@@ -2,20 +2,25 @@ module.exports = function() {
 
     this.str = [];
 
-    this.calculerDegats = function (brute) {
+    this.calculerDegats = function (brute,crit) {
         let degats = brute.force;
         if (brute.arme) {
             degats += brute.arme.modificateurDegats;
         }        
-        return degats;
+        return crit ? degats * 2 : degats;
     }
 
     this.attaquer = function(bruteAttaquante, bruteCible) {
-        const degats = calculerDegats(bruteAttaquante);
-        bruteCible.hp -= degats;
-        str = [...str, bruteCible.nom + " perd " + degats + "hp. Il lui reste " + bruteCible.hp + " hp"];
-
-
+        const esquive = Math.random() < ((bruteCible.agilite / 100) + 0.1);
+        if (esquive) {
+            str = [...str, bruteCible.nom + " esquive ! "];
+        }else{
+            const crit = Math.random() < ((bruteAttaquante.agilite / 100) + 0.05);
+            const degats = calculerDegats(bruteAttaquante,crit);
+            let critMsg = crit ? ' (coup critique)' : '';
+            bruteCible.hp -= degats;
+            str = [...str, bruteCible.nom + " perd " + degats + "hp"+ critMsg+". Il lui reste " + bruteCible.hp + " hp"];
+        }
     }
       
     this.determinerTour = function(brute1, brute2) {
@@ -34,10 +39,10 @@ module.exports = function() {
         const bruteAdverse = bruteEnCours === brute1 ? brute2 : brute1;
         while (bruteEnCours.hp > 0 && bruteAdverse.hp > 0) {
             str = [...str, "C'est au tour de " + bruteEnCours.nom + " d'attaquer."];
-            attaquer(bruteEnCours, bruteAdverse);
+            await attaquer(bruteEnCours, bruteAdverse);
             if (bruteAdverse.hp > 0) {
                 str = [...str, "C'est au tour de " + bruteAdverse.nom + " d'attaquer."];
-                attaquer(bruteAdverse, bruteEnCours);
+                await attaquer(bruteAdverse, bruteEnCours);
             }
         }
         
