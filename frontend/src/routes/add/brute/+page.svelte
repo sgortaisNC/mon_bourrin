@@ -10,7 +10,7 @@
   
     async function ajouterBrute() {
       try {
-        const response = await axios.post('http://localhost:3000/brute', {
+        const response = await axios.post('http://172.16.5.71:3000/brute', {
           nom,
           hp,
           force,

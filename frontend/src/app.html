@@ -12,6 +12,13 @@
 		*{
 			box-sizing: border-box;
 		}
+		:root{
+			--main: #246465;
+			--bright: #2A9D8F;
+			--secondary: #e9c46a;
+			--warning: #f4a261;
+			--danger: #e76f51;
+		}
 		html,body{
 			margin: 0;
 			padding: 0;
@@ -19,6 +26,24 @@
 		body{
 			font-family: 'Nunito', sans-serif;
 			font-size: 18px;
+			background: var(--main);
+			color: #FFFFFF;
+			position: relative;
+		}
+		body::before{
+			content: '';
+			position: absolute;
+			top: 5px;
+			left: 5px;
+			width: 50vw;
+			height: 40vw;
+			border-radius: 24vw;
+			border: 80px solid #196b62;
+			background: var(--bright);
+			z-index: -1;
+			rotate: 0;
+			transform: translate(-10vh,-10vw);
+			filter: blur(80px);
 		}
 	</style>
 	%sveltekit.head%

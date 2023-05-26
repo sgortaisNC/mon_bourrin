@@ -8,7 +8,7 @@
     let brutes = []
     
     const getBrutes = () => {
-        axios.get('http://localhost:3000/brutes')
+        axios.get('http://172.16.5.71:3000/brutes')
             .then((response) => {
                 console.log(response)
                 brutes = response.data;
@@ -26,7 +26,7 @@
 
 <div class="selecteur">
     <select on:change={handleBruteSelection} name="" id="select">
-        <option value="">PTDR T KI ?</option>
+        <option value="">Qui es-tu ?</option>
         {#each brutes as brute}
             <option value={brute.id}>{brute.nom}</option>
         {/each}

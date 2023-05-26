@@ -38,44 +38,49 @@
     ];
     
     /**
-	 * @type {String[]}
-	 */
+    * @type {String[]}
+    */
     let messages = [];
+    /**
+    * @type {String[]}
+    */
     let displayMessagePerSec = [];
-
-    function combattre(event) {
+    
+    async function combattre(event) {
         event.preventDefault();
+        brute.nbmatch += 1;
         displayMessagePerSec = [];
         event.target.innerHTML = 'En cours...';
         
         let me = event.target.dataset.me;
         let adv = event.target.dataset.adv;
         
-        axios.post('http://localhost:3000/combat', {
+        axios.post('http://172.16.5.71:3000/combat', {
             id1: me,
             id2: adv
         }).then(res => {
             console.log(res.data);
             event.target.innerHTML = 'BASTON';
             messages = res.data.combat;
-
             let displayMessagePerSecInterval = setInterval(() => {
                 if (messages.length > 0) {
-                    displayMessagePerSec = [...displayMessagePerSec, messages.shift()]
+                    displayMessagePerSec = [...displayMessagePerSec,messages.shift()]
                 }else{
+                    currentBrute(me)
                     clearInterval(displayMessagePerSecInterval);
                 }
-            }, 1000);
+                console.log(messages)
+            }, 300);
         }).catch(err => {
             console.log(err);
             event.target.innerHTML = 'BASTON';
         });
+
     }
     
-    
-   
-    onMount(() => {
-        axios.get(`http://localhost:3000/brute/${data.id}`)
+    function currentBrute(id){
+        console.log(id)
+        axios.get(`http://172.16.5.71:3000/brute/${id}`)
         .then(res => {
             brute = res.data;
         })
@@ -83,36 +88,138 @@
             console.log(err);
         });
         
-        axios.get(`http://localhost:3000/brute/${data.id}/adversaires`).then(res => {
+        axios.get(`http://172.16.5.71:3000/brute/${id}/adversaires`).then(res => {
             adversaires = res.data;
         }).catch(err => {
             console.log(err);
         });
-
+    }
+    
+    onMount(() => {
+        currentBrute(data.id)
     });
+    
+    
+    let modalOpen = false 
+    function openCloseModal(){
+        modalOpen = !modalOpen;
+        console.log(modalOpen)
+    }
+    
+    
+    const levelUp = (/** @type {string} */ str) => () => {
+        
+        let hp = brute.hp;
+        let force = brute.force; 
+        let endurance = brute.endurance;
+        let agilite = brute.agilite; 
+        switch (str) {
+            case "HP":
+            hp += 10;
+            break;
+            case "Force":
+            force++
+            break;
+            case "Endurance":
+            endurance++
+            break;
+            case "Agilité":
+            agilite++
+            break;
+        }
+        
+        
+        axios.post(`http://172.16.5.71:3000/brute/${data.id}/levelup`,{
+            id: brute.id,
+            lvl: brute.level + 1,
+            maxxp: Math.round(brute.maxxp*1.1),
+            hp: hp,
+            force: force,
+            endurance: endurance,
+            agilite: agilite,
+        }).then(res => {
+            brute = res.data
+        }).catch(err => {
+            console.log(err);
+        });
+
+        modalOpen = !modalOpen;
+        
+    }
 </script>
 
-
-<h1>{brute.nom} - Lvl {brute.level} ({brute.currentxp}/{brute.maxxp})</h1>
-<ul>
-    <li>HP : {brute.hp}</li>
-    <li>Force : {brute.force}</li>
-    <li>Endurance : {brute.endurance}</li>
-    <li>Agilité : {brute.agilite}</li>
-</ul>
-
-<h2>Match restant : {3 - brute.nbmatch}</h2>
-<h4>Adversaire possible : </h4> 
-<ul>
-    {#each adversaires as adversaire}
-    <li>{adversaire.nom} - Lvl {adversaire.level} <button data-adv={adversaire.id} data-me={brute.id} on:click={combattre}>BASTON</button></li>
-    {/each}
-</ul>
-
-<div id="resultatCombat">
-    {#each displayMessagePerSec as message}
+<div class="wrapper">
+    <main>
+        <a href="/">retour</a>
+        
+        <h1>{brute.nom} - Lvl {brute.level} ({brute.currentxp}/{brute.maxxp})</h1>
+        {#if brute.currentxp >= brute.maxxp}
+            <button on:click={openCloseModal}>
+                Level up ! 
+            </button>
+        {/if}
+        {#if modalOpen}            
+        <div class="modal">
+            <div class="inner">
+                <button on:click={openCloseModal}>Fermer</button>
+                <h2>Quoi qui augmente ?</h2>
+                <button on:click={levelUp('HP')}>HP +10</button>
+                <button on:click={levelUp('Force')}>Force +1</button>
+                <button on:click={levelUp('Endurance')}>Endurance +1</button>
+                <button on:click={levelUp('Agilité')}>Agilité +1</button>
+            </div>
+        </div>
+        {/if}
+        <ul>
+            <li>HP : {brute.hp}</li>
+            <li>Force : {brute.force}</li>
+            <li>Endurance : {brute.endurance}</li>
+            <li>Agilité : {brute.agilite}</li>
+        </ul>
+        
+        <h2>Match restant : {3 - brute.nbmatch}</h2>
+        <h4>Adversaire possible : </h4> 
+        <ul>
+            {#each adversaires as adversaire}
+            <li>{adversaire.nom} - Lvl {adversaire.level} 
+                {#if brute.nbmatch <= 2}
+                <button data-adv={adversaire.id} data-me={brute.id} on:click={combattre}>BASTON</button>
+                {/if}
+            </li>
+            {/each}
+        </ul>
+    </main>
+    
+    <aside id="resultatCombat">
+        {#each displayMessagePerSec as message,id (id)}
         <div transition:fade>
             {message} <br> 
         </div>
-    {/each}
+        {/each}
+    </aside>
 </div>
+
+<style>
+    .wrapper{
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    main{
+        width: 75%;
+    }
+    .modal{
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        backdrop-filter: blur(10px);
+        display: grid;
+        place-items: center;
+        
+    }
+    .modal .inner{
+        background: #FFFFFF50;
+        padding: 15px;
+        color: white;
+    }
+</style>
